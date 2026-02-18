@@ -62,12 +62,11 @@ function isValidUUID(value: string): boolean {
 export class FirewallaMCPServer {
   private static signalHandlersRegistered = false;
 
-  private server: Server;
+  private server!: Server;
   private firewalla: FirewallaClient;
 
   constructor() {
     this.firewalla = new FirewallaClient(config);
-    this.server = this.createServerInstance();
   }
 
   /**
@@ -869,6 +868,7 @@ export class FirewallaMCPServer {
    * Starts the MCP server using stdio transport
    */
   private async startStdioTransport(): Promise<void> {
+    this.server = this.createServerInstance();
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
     logger.info(
@@ -969,18 +969,11 @@ export class FirewallaMCPServer {
                 // This ensures the transport is available before handleRequest is called
                 transports.set(newSessionId, transport);
 
-                // Set up cleanup handler
+                // Set up cleanup handler using closure variable for reliable cleanup
                 transport.onclose = () => {
-                  const sid = transport.sessionId;
-                  if (sid) {
-                    if (transports.has(sid)) {
-                      logger.info(`HTTP session closed: ${sid}`);
-                      transports.delete(sid);
-                    }
-                    if (servers.has(sid)) {
-                      servers.delete(sid);
-                    }
-                  }
+                  logger.info(`HTTP session closed: ${newSessionId}`);
+                  transports.delete(newSessionId);
+                  servers.delete(newSessionId);
                 };
 
                 // Create a new Server instance for this session

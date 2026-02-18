@@ -224,41 +224,29 @@ export class GetFlowDataHandler extends BaseToolHandler {
             this.name
           );
 
-          // Process flows for this chunk
-          const processedFlows = SafeAccess.safeArrayMap(
-            response.results,
+          // Process flows for this chunk — align with non-streaming path
+          const processedFlows = (response.results || []).map(
             (flow: any) => ({
+              ts: flow.ts,
               timestamp: unixToISOStringOrNow(flow.ts),
-              source_ip: SafeAccess.getNestedValue(
-                flow,
-                'source.ip',
-                SafeAccess.getNestedValue(flow, 'device.ip', 'unknown')
-              ),
-              destination_ip: SafeAccess.getNestedValue(
-                flow,
-                'destination.ip',
-                'unknown'
-              ),
-              protocol: SafeAccess.getNestedValue(flow, 'protocol', 'unknown'),
-              bytes:
-                (SafeAccess.getNestedValue(flow, 'download', 0) as number) +
-                (SafeAccess.getNestedValue(flow, 'upload', 0) as number),
-              download: SafeAccess.getNestedValue(flow, 'download', 0),
-              upload: SafeAccess.getNestedValue(flow, 'upload', 0),
-              packets: SafeAccess.getNestedValue(flow, 'count', 0),
-              duration: SafeAccess.getNestedValue(flow, 'duration', 0),
-              direction: SafeAccess.getNestedValue(
-                flow,
-                'direction',
-                'unknown'
-              ),
-              blocked: SafeAccess.getNestedValue(flow, 'block', false),
-              block_type: SafeAccess.getNestedValue(flow, 'blockType', null),
-              device: SafeAccess.getNestedValue(flow, 'device', {}),
-              source: SafeAccess.getNestedValue(flow, 'source', {}),
-              destination: SafeAccess.getNestedValue(flow, 'destination', {}),
-              region: SafeAccess.getNestedValue(flow, 'region', null),
-              category: SafeAccess.getNestedValue(flow, 'category', null),
+              source_ip: flow.source?.ip || flow.device?.ip || 'unknown',
+              destination_ip: flow.destination?.ip || 'unknown',
+              protocol: flow.protocol || 'unknown',
+              bytes: flow.bytes || (flow.download || 0) + (flow.upload || 0),
+              download: flow.download || 0,
+              upload: flow.upload || 0,
+              packets: flow.count || 0,
+              duration: flow.duration || 0,
+              direction: flow.direction || 'unknown',
+              blocked: flow.block || false,
+              block_type: flow.blockType || null,
+              domain: flow.domain || null,
+              device: flow.device || {},
+              source: flow.source || {},
+              destination: flow.destination || {},
+              network: flow.network || null,
+              region: flow.region || null,
+              category: flow.category || null,
             })
           );
 
@@ -311,7 +299,7 @@ export class GetFlowDataHandler extends BaseToolHandler {
       const executionTime = Date.now() - startTime;
 
       // Process flow data - preserve rich data from client instead of stripping it
-      let processedFlows = (response.results || []).map((flow: any) => ({
+      const processedFlows = (response.results || []).map((flow: any) => ({
         ts: flow.ts,
         timestamp: unixToISOStringOrNow(flow.ts),
         source_ip: flow.source?.ip || flow.device?.ip || 'unknown',

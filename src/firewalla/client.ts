@@ -735,7 +735,7 @@ export class FirewallaClient {
         if (item.source) {
           flow.source = {
             id: item.source.id || 'unknown',
-            name: item.source.name || item.domain || 'Unknown',
+            name: item.source.name || 'Unknown',
             ip: item.source.ip || item.srcIP || 'unknown',
           };
         }
@@ -1026,16 +1026,23 @@ export class FirewallaClient {
 
       // Paginate through ALL flows in the time window to get accurate bandwidth
       const endpoint = '/v2/flows';
+      const FLOWS_PER_PAGE = 500; // API maximum per page
+      const MAX_PAGES = 50; // Safety limit: 50 pages * 500 = 25,000 flows max
+      const PAGE_DELAY_MS = 75; // Delay between pages to avoid API bursting
       const deviceBandwidth = new Map<string, BandwidthUsage>();
       let totalFlowsProcessed = 0;
       let cursor: string | undefined;
-      const maxPages = 50; // Safety limit: 50 pages * 500 = 25,000 flows max
 
-      for (let page = 0; page < maxPages; page++) {
+      for (let page = 0; page < MAX_PAGES; page++) {
+        // Add delay between pages (skip first page)
+        if (page > 0) {
+          await new Promise(resolve => setTimeout(resolve, PAGE_DELAY_MS));
+        }
+
         const params: Record<string, unknown> = {
           query: `ts:${begin}-${end}`,
           sortBy: 'download:desc',
-          limit: 500, // API maximum per page
+          limit: FLOWS_PER_PAGE,
         };
 
         if (cursor) {
@@ -1052,7 +1059,9 @@ export class FirewallaClient {
         }>('GET', endpoint, params);
 
         const results = response.results || [];
-        if (results.length === 0) break;
+        if (results.length === 0) {
+          break;
+        }
 
         totalFlowsProcessed += results.length;
 
@@ -1116,11 +1125,15 @@ export class FirewallaClient {
 
         // Check if there are more pages
         cursor = response.next_cursor;
-        if (!cursor || results.length < 500) break;
+        if (!cursor || results.length < FLOWS_PER_PAGE) {
+          break;
+        }
 
         // Early exit: if we already have enough unique devices with significant data
         // and we've processed a reasonable number of flows
-        if (deviceBandwidth.size >= validatedTop * 3 && totalFlowsProcessed >= 5000) break;
+        if (deviceBandwidth.size >= validatedTop * 3 && totalFlowsProcessed >= 5000) {
+          break;
+        }
       }
 
       logger.debug(
