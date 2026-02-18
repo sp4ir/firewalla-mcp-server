@@ -695,7 +695,7 @@ export class FirewallaClient {
           block: Boolean(item.block || item.blocked),
           download: item.download || 0,
           upload: item.upload || 0,
-          bytes: (item.download || 0) + (item.upload || 0),
+          bytes: item.total || (item.download || 0) + (item.upload || 0),
           duration: item.duration || 0,
           count: item.count || item.packets || 1,
           device: {
@@ -712,7 +712,20 @@ export class FirewallaClient {
           flow.blockType = item.blockType;
         }
 
-        if (item.device?.network) {
+        // Preserve domain from API response
+        if (item.domain) {
+          flow.domain = item.domain;
+        }
+
+        // Preserve network info (top-level from API, not nested in device)
+        if (item.network) {
+          flow.network = {
+            id: item.network.id,
+            name: item.network.name,
+            type: item.network.type,
+            gid: item.network.gid,
+          };
+        } else if (item.device?.network) {
           flow.device.network = {
             id: item.device.network.id,
             name: item.device.network.name,
@@ -722,7 +735,7 @@ export class FirewallaClient {
         if (item.source) {
           flow.source = {
             id: item.source.id || 'unknown',
-            name: item.source.name || 'Unknown',
+            name: item.source.name || item.domain || 'Unknown',
             ip: item.source.ip || item.srcIP || 'unknown',
           };
         }
@@ -1011,33 +1024,40 @@ export class FirewallaClient {
           begin = end - 24 * 60 * 60;
       }
 
-      // Use global endpoint with box parameter for filtering
-      // Note: groupBy parameter conflicts with query+box combination, so we do client-side grouping
-      const params: Record<string, unknown> = {
-        query: `ts:${begin}-${end}`,
-        sortBy: 'ts:desc',
-        limit: Math.min(validatedTop * 10, 1000), // Get more data for client-side grouping
-      };
-
-      // Apply box filter through the query parameter
-      params.query = this.addBoxFilter(params.query as string | undefined);
-
+      // Paginate through ALL flows in the time window to get accurate bandwidth
       const endpoint = '/v2/flows';
-
-      const response = await this.request<{
-        count: number;
-        results: any[];
-        next_cursor?: string;
-      }>('GET', endpoint, params);
-
-      // Process and aggregate bandwidth by device
       const deviceBandwidth = new Map<string, BandwidthUsage>();
+      let totalFlowsProcessed = 0;
+      let cursor: string | undefined;
+      const maxPages = 50; // Safety limit: 50 pages * 500 = 25,000 flows max
 
-      logger.debug(
-        `Processing ${response.results?.length || 0} flows for bandwidth calculation`
-      );
+      for (let page = 0; page < maxPages; page++) {
+        const params: Record<string, unknown> = {
+          query: `ts:${begin}-${end}`,
+          sortBy: 'download:desc',
+          limit: 500, // API maximum per page
+        };
 
-      (response.results || []).forEach((flow: any) => {
+        if (cursor) {
+          params.cursor = cursor;
+        }
+
+        // Apply box filter through the query parameter
+        params.query = this.addBoxFilter(params.query as string | undefined);
+
+        const response = await this.request<{
+          count: number;
+          results: any[];
+          next_cursor?: string;
+        }>('GET', endpoint, params);
+
+        const results = response.results || [];
+        if (results.length === 0) break;
+
+        totalFlowsProcessed += results.length;
+
+        // Aggregate bandwidth per device from this page
+        results.forEach((flow: any) => {
         // Enhanced device ID detection with more fallbacks
         const deviceId =
           flow.device?.id ||
@@ -1094,23 +1114,34 @@ export class FirewallaClient {
         }
       });
 
+        // Check if there are more pages
+        cursor = response.next_cursor;
+        if (!cursor || results.length < 500) break;
+
+        // Early exit: if we already have enough unique devices with significant data
+        // and we've processed a reasonable number of flows
+        if (deviceBandwidth.size >= validatedTop * 3 && totalFlowsProcessed >= 5000) break;
+      }
+
+      logger.debug(
+        `Bandwidth calculation: processed ${totalFlowsProcessed} flows across ${deviceBandwidth.size} devices`
+      );
+
       // Convert to array and sort by total bandwidth
       const allDevices = Array.from(deviceBandwidth.values());
-      logger.debug(`Total unique devices found: ${allDevices.length}`);
 
-      const results = allDevices
+      const finalResults = allDevices
         .filter(device => device.total_bytes > 0)
         .sort((a, b) => b.total_bytes - a.total_bytes)
         .slice(0, validatedTop);
 
       logger.debug(
-        `Final results after filtering and limiting: ${results.length}`
+        `Final results after filtering and limiting: ${finalResults.length}`
       );
 
       return {
-        count: results.length,
-        results,
-        next_cursor: response.next_cursor,
+        count: finalResults.length,
+        results: finalResults,
       };
     } catch (error) {
       logger.error(

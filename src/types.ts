@@ -286,6 +286,19 @@ export interface Flow {
   region?: string;
   /** Remote host category */
   category?: CategoryType;
+  /** Domain name of remote host */
+  domain?: string;
+  /** Network the device belongs to */
+  network?: {
+    /** Network ID */
+    id: string;
+    /** Network name */
+    name: string;
+    /** Network type */
+    type?: string;
+    /** Box GID */
+    gid?: string;
+  };
 }
 
 /**
