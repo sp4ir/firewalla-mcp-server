@@ -1,3 +1,8 @@
+---
+title: "Cline"
+description: "Firewalla MCP server: Cline"
+---
+
 # Firewalla MCP × Cline
 
 Integrate Firewalla network security monitoring into Cline for AI-powered security analysis and network management.

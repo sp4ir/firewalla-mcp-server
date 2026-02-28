@@ -1,3 +1,8 @@
+---
+title: "Firewalla Api Reference"
+description: "Firewalla MCP server: Firewalla Api Reference"
+---
+
 # Firewalla MSP API Reference
 
 ## Overview

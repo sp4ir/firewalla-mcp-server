@@ -1,3 +1,8 @@
+---
+title: "Security Policy Guide"
+description: "Firewalla MCP server: Security Policy Guide"
+---
+
 # Security Policy Guide - Firewalla MCP Server
 
 ## Overview

@@ -1,3 +1,8 @@
+---
+title: "Limits And Performance Guide"
+description: "Firewalla MCP server: Limits And Performance Guide"
+---
+
 # Firewalla MCP Server - Limits and Performance Guide
 
 This guide provides comprehensive documentation on limit configurations, performance rationale, and optimization strategies for the Firewalla MCP Server.

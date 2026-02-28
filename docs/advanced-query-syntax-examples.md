@@ -1,3 +1,8 @@
+---
+title: "Advanced Query Syntax Examples"
+description: "Firewalla MCP server: Advanced Query Syntax Examples"
+---
+
 # Advanced Query Syntax Examples for Firewalla MCP Tools
 
 This guide provides comprehensive query syntax examples and patterns for advanced search capabilities across all Firewalla MCP Server tools.

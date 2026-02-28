@@ -1,3 +1,8 @@
+---
+title: "Spec"
+description: "Firewalla MCP server: Spec"
+---
+
 # Technical Specification - Firewalla MCP Server
 
 ## Overview

@@ -1,3 +1,8 @@
+---
+title: "Troubleshooting Guide"
+description: "Firewalla MCP server: Troubleshooting Guide"
+---
+
 # Firewalla MCP Server - Comprehensive Troubleshooting Guide
 
 This guide provides step-by-step troubleshooting procedures for common issues encountered with the Firewalla MCP Server. Each section includes symptom identification, root cause analysis, and actionable solutions.

@@ -1,3 +1,8 @@
+---
+title: "Error Handling Guide"
+description: "Firewalla MCP server: Error Handling Guide"
+---
+
 # Firewalla MCP Server - Error Handling Guide
 
 This guide provides comprehensive documentation for error handling patterns, response formats, and troubleshooting techniques used throughout the Firewalla MCP Server.

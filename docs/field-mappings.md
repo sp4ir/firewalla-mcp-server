@@ -1,3 +1,8 @@
+---
+title: "Field Mappings"
+description: "Firewalla MCP server: Field Mappings"
+---
+
 # Firewalla MCP Server - Field Mappings Reference
 
 This document provides comprehensive mapping information between user-facing field names and API field names, including type conversions, supported operators, and example queries for the Firewalla MCP Server.

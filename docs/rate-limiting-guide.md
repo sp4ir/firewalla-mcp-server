@@ -1,3 +1,8 @@
+---
+title: "Rate Limiting Guide"
+description: "Firewalla MCP server: Rate Limiting Guide"
+---
+
 # Firewalla MCP Server - Rate Limiting Guide
 
 This guide provides comprehensive documentation for API usage guidelines, rate limiting thresholds, caching strategies, and performance optimization techniques for the Firewalla MCP Server.

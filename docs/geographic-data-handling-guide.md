@@ -1,3 +1,8 @@
+---
+title: "Geographic Data Handling Guide"
+description: "Firewalla MCP server: Geographic Data Handling Guide"
+---
+
 # Geographic Data Handling and Normalization Guide
 
 This guide provides comprehensive documentation on geographic data processing, unknown value handling, and normalization patterns used throughout the Firewalla MCP Server.

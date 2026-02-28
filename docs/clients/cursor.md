@@ -1,3 +1,8 @@
+---
+title: "Cursor"
+description: "Firewalla MCP server: Cursor"
+---
+
 # Firewalla MCP × Cursor
 
 Integrate Firewalla network security monitoring into Cursor IDE for real-time security analysis while coding.

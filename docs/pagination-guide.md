@@ -1,3 +1,8 @@
+---
+title: "Pagination Guide"
+description: "Firewalla MCP server: Pagination Guide"
+---
+
 # Firewalla MCP Server - Pagination Guide
 
 This guide covers the cursor-based pagination system used throughout the Firewalla MCP Server. Understanding pagination is essential for efficiently handling large datasets and building responsive applications.

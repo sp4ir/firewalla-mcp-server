@@ -1,3 +1,8 @@
+---
+title: "Api Documentation Audit Report"
+description: "Firewalla MCP server: Api Documentation Audit Report"
+---
+
 # Firewalla API Documentation Audit Report
 
 **Date**: 2025-07-14

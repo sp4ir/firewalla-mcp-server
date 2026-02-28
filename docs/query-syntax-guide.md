@@ -1,3 +1,8 @@
+---
+title: "Query Syntax Guide"
+description: "Firewalla MCP server: Query Syntax Guide"
+---
+
 # Firewalla MCP Server - Query Syntax Guide
 
 This guide provides comprehensive documentation for the query syntax used across all Firewalla MCP Server search tools. The search functionality supports powerful filtering, logical operations, and complex queries to help you find exactly the data you need.

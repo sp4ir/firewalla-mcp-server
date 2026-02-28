@@ -1,3 +1,8 @@
+---
+title: "Claude Code"
+description: "Firewalla MCP server: Claude Code"
+---
+
 # Firewalla MCP × Claude Code
 
 Integrate Firewalla network security data into your Claude Code CLI workflow for command-line security monitoring and analysis.

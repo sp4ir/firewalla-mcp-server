@@ -1,3 +1,8 @@
+---
+title: "Vscode"
+description: "Firewalla MCP server: Vscode"
+---
+
 # Firewalla MCP × VS Code
 
 Connect Firewalla network security data to VS Code for integrated security monitoring while coding and network administration.

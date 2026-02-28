@@ -1,3 +1,8 @@
+---
+title: "Readme"
+description: "Firewalla MCP server: Readme"
+---
+
 # Firewalla MCP Server
 
 [![npm version](https://badge.fury.io/js/firewalla-mcp-server.svg)](https://www.npmjs.com/package/firewalla-mcp-server)

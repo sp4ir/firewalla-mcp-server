@@ -1,3 +1,8 @@
+---
+title: "Version Release Notes"
+description: "Firewalla MCP server: Version_Release_Notes"
+---
+
 # Version 1.2.1 Release Notes
 
 ## Summary

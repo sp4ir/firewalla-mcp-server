@@ -1,3 +1,8 @@
+---
+title: "Claude Desktop"
+description: "Firewalla MCP server: Claude Desktop"
+---
+
 # Firewalla MCP × Claude Desktop
 
 Connect your Firewalla firewall data directly to Claude Desktop for real-time security analysis and network monitoring.

@@ -1,3 +1,8 @@
+---
+title: "Tool Descriptions Enhancement Guide"
+description: "Firewalla MCP server: Tool Descriptions Enhancement Guide"
+---
+
 # Firewalla MCP Server - Tool Descriptions Enhancement Guide
 
 This document provides comprehensive documentation on the tool description improvements, resolved limit discrepancies, and enhancement patterns implemented in the Firewalla MCP Server.

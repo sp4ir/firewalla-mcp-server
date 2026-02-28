@@ -1,3 +1,8 @@
+---
+title: "Roocode"
+description: "Firewalla MCP server: Roocode"
+---
+
 # Firewalla MCP × Roocode
 
 Connect Firewalla network security data to Roocode for integrated security monitoring in your development environment.

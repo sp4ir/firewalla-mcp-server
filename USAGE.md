@@ -1,3 +1,8 @@
+---
+title: "Usage"
+description: "Firewalla MCP server: Usage"
+---
+
 # Simple Usage Guide
 
 This guide shows you how to get started with the Firewalla MCP Server after installation.

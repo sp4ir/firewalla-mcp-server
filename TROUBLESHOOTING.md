@@ -1,3 +1,8 @@
+---
+title: "Troubleshooting"
+description: "Firewalla MCP server: Troubleshooting"
+---
+
 # Troubleshooting Guide
 
 Common issues and solutions for the Firewalla MCP Server.

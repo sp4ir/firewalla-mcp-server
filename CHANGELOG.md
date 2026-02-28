@@ -1,3 +1,8 @@
+---
+title: "Changelog"
+description: "Firewalla MCP server: Changelog"
+---
+
 # Changelog
 
 All notable changes to this project will be documented in this file.

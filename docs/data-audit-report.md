@@ -1,3 +1,8 @@
+---
+title: "Data Audit Report"
+description: "Firewalla MCP server: Data Audit Report"
+---
+
 # Firewalla MCP Server Data Audit Report
 
 ## Executive Summary

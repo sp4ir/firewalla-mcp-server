@@ -1,3 +1,8 @@
+---
+title: "Ollama Mcpo Setup"
+description: "Firewalla MCP server: Ollama Mcpo Setup"
+---
+
 # Firewalla MCP Server with Ollama + MCPO Setup Guide
 
 This guide helps you set up the Firewalla MCP Server with Ollama using MCPO (MCP Proxy for Ollama).

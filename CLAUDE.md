@@ -1,3 +1,8 @@
+---
+title: "Claude"
+description: "Firewalla MCP server: Claude"
+---
+
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
