@@ -657,11 +657,40 @@ export class DeleteAlarmHandler extends BaseToolHandler {
       // Alarm exists, proceed with deletion
       const response = await firewalla.deleteAlarm(alarmId);
 
-      // Create a simple success response without the complex unified response
+      // Post-delete verification: confirm the alarm is actually gone
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      let verified = false;
+      let verificationNote = '';
+      try {
+        const postCheck = await firewalla.getSpecificAlarm(alarmId);
+        if (
+          !postCheck ||
+          !postCheck.results ||
+          postCheck.results.length === 0
+        ) {
+          verified = true;
+          verificationNote = 'Deletion confirmed — alarm no longer exists';
+        } else {
+          verified = false;
+          verificationNote =
+            'Delete API returned success but alarm still exists';
+        }
+      } catch {
+        // 404 or error fetching means alarm is gone
+        verified = true;
+        verificationNote =
+          'Deletion confirmed — alarm no longer retrievable';
+      }
+
       return this.createSuccessResponse({
         success: true,
         alarm_id: alarmId,
-        message: 'Alarm deleted successfully',
+        message: verified
+          ? 'Alarm deleted successfully'
+          : 'Alarm deletion unverified — alarm may persist',
+        verified,
+        verification_note: verificationNote,
         deleted_at: getCurrentTimestamp(),
         api_response: response,
       });

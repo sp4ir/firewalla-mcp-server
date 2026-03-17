@@ -973,6 +973,164 @@ export class GetFlowInsightsHandler extends BaseToolHandler {
   }
 }
 
+export class GetFlowTrendsHandler extends BaseToolHandler {
+  name = 'get_flow_trends';
+  description =
+    'Get historical flow trend data (blocked flows per day) with configurable periods. Optional period parameter. Data cached for 1 hour for performance.';
+  category = 'analytics' as const;
+
+  constructor() {
+    super({
+      enableGeoEnrichment: false,
+      enableFieldNormalization: true,
+      additionalMeta: {
+        data_source: 'flow_trends',
+        entity_type: 'historical_flow_data',
+        supports_geographic_enrichment: false,
+        supports_field_normalization: true,
+        standardization_version: '2.0.0',
+      },
+    });
+  }
+
+  async execute(
+    _args: ToolArgs,
+    firewalla: FirewallaClient
+  ): Promise<ToolResponse> {
+    try {
+      const periodValidation = ParameterValidator.validateEnum(
+        _args?.period,
+        'period',
+        ['1h', '24h', '7d', '30d'],
+        false,
+        '24h'
+      );
+
+      if (!periodValidation.isValid) {
+        return this.createErrorResponse(
+          'Parameter validation failed',
+          ErrorType.VALIDATION_ERROR,
+          undefined,
+          periodValidation.errors
+        );
+      }
+
+      const period = periodValidation.sanitizedValue!;
+
+      const trends = await withToolTimeout(
+        async () =>
+          firewalla.getFlowTrends(period as '1h' | '24h' | '7d' | '30d'),
+        this.name
+      );
+
+      // Defensive programming: validate trends response structure
+      if (
+        !trends ||
+        !SafeAccess.getNestedValue(trends, 'results') ||
+        !Array.isArray(trends.results)
+      ) {
+        return this.createSuccessResponse({
+          period,
+          data_points: 0,
+          trends: [],
+          summary: {
+            total_blocked_flows: 0,
+            avg_blocked_per_interval: 0,
+            peak_blocked_count: 0,
+            intervals_with_blocks: 0,
+            block_frequency: 0,
+          },
+          error: 'Invalid flow trends data received',
+        });
+      }
+
+      // Validate individual trend entries
+      const validTrends = SafeAccess.safeArrayFilter(
+        trends.results,
+        (trend: any) =>
+          trend &&
+          typeof SafeAccess.getNestedValue(trend, 'ts') === 'number' &&
+          typeof SafeAccess.getNestedValue(trend, 'value') === 'number' &&
+          (SafeAccess.getNestedValue(trend, 'ts', 0) as number) > 0 &&
+          (SafeAccess.getNestedValue(trend, 'value', 0) as number) >= 0
+      );
+
+      const startTime = Date.now();
+
+      const unifiedResponseData = {
+        period,
+        data_points: validTrends.length,
+        trends: SafeAccess.safeArrayMap(validTrends, (trend: any) => ({
+          timestamp: SafeAccess.getNestedValue(trend, 'ts', 0),
+          timestamp_iso: unixToISOString(
+            SafeAccess.getNestedValue(trend, 'ts', 0) as number
+          ),
+          blocked_flow_count: SafeAccess.getNestedValue(trend, 'value', 0),
+        })),
+        summary: {
+          total_blocked_flows: validTrends.reduce(
+            (sum: number, t: any) =>
+              sum + (SafeAccess.getNestedValue(t, 'value', 0) as number),
+            0
+          ),
+          avg_blocked_per_interval:
+            validTrends.length > 0
+              ? Math.round(
+                  (validTrends.reduce(
+                    (sum: number, t: any) =>
+                      sum +
+                      (SafeAccess.getNestedValue(t, 'value', 0) as number),
+                    0
+                  ) /
+                    validTrends.length) *
+                    100
+                ) / 100
+              : 0,
+          peak_blocked_count:
+            validTrends.length > 0
+              ? Math.max(
+                  ...validTrends
+                    .slice(0, 1000)
+                    .map(
+                      (t: any) =>
+                        SafeAccess.getNestedValue(t, 'value', 0) as number
+                    )
+                )
+              : 0,
+          intervals_with_blocks: SafeAccess.safeArrayFilter(
+            validTrends,
+            (t: any) => (SafeAccess.getNestedValue(t, 'value', 0) as number) > 0
+          ).length,
+          block_frequency:
+            validTrends.length > 0
+              ? Math.round(
+                  (SafeAccess.safeArrayFilter(
+                    validTrends,
+                    (t: any) =>
+                      (SafeAccess.getNestedValue(t, 'value', 0) as number) > 0
+                  ).length /
+                    validTrends.length) *
+                    100
+                )
+              : 0,
+        },
+      };
+
+      const executionTime = Date.now() - startTime;
+      return this.createUnifiedResponse(unifiedResponseData, {
+        executionTimeMs: executionTime,
+      });
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
+      return this.createErrorResponse(
+        `Failed to get flow trends: ${errorMessage}`,
+        ErrorType.API_ERROR
+      );
+    }
+  }
+}
+
 export class GetAlarmTrendsHandler extends BaseToolHandler {
   name = 'get_alarm_trends';
   description =

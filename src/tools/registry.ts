@@ -35,14 +35,14 @@ import type { ToolHandler } from './handlers/base.js';
 import {
   GetActiveAlarmsHandler,
   GetSpecificAlarmHandler,
-  // DeleteAlarmHandler, // Disabled - API returns false success
+  DeleteAlarmHandler,
 } from './handlers/security.js';
 import {
   GetFlowDataHandler,
   GetBandwidthUsageHandler,
   GetOfflineDevicesHandler,
 } from './handlers/network.js';
-import { GetDeviceStatusHandler } from './handlers/device.js';
+import { GetDeviceStatusHandler, UpdateDeviceNameHandler } from './handlers/device.js';
 import {
   GetNetworkRulesHandler,
   PauseRuleHandler,
@@ -61,6 +61,7 @@ import {
   GetStatisticsByBoxHandler,
   GetRecentFlowActivityHandler,
   GetFlowInsightsHandler,
+  GetFlowTrendsHandler,
   GetAlarmTrendsHandler,
   GetRuleTrendsHandler,
 } from './handlers/analytics.js';
@@ -129,18 +130,17 @@ export class ToolRegistry {
   private registerHandlers(): void {
     // Direct API Endpoints (23 handlers)
 
-    // Security tools (2 handlers - delete_alarm disabled)
+    // Security tools (3 handlers)
     this.register(new GetActiveAlarmsHandler());
     this.register(new GetSpecificAlarmHandler());
-    // Disabled: DeleteAlarmHandler commented out because the Firewalla MSP API
-    // returns false success responses but doesn't actually delete alarms
-    // this.register(new DeleteAlarmHandler());
+    this.register(new DeleteAlarmHandler());
 
     // Network tools (1 handler - get_flow_data)
     this.register(new GetFlowDataHandler());
 
-    // Device tools (1 handler)
+    // Device tools (2 handlers)
     this.register(new GetDeviceStatusHandler());
+    this.register(new UpdateDeviceNameHandler());
 
     // Rule tools (8 handlers)
     this.register(new GetNetworkRulesHandler());
@@ -164,6 +164,7 @@ export class ToolRegistry {
     this.register(new GetStatisticsByBoxHandler());
     this.register(new GetRecentFlowActivityHandler());
     this.register(new GetFlowInsightsHandler());
+    this.register(new GetFlowTrendsHandler());
     this.register(new GetAlarmTrendsHandler());
     this.register(new GetRuleTrendsHandler());
 

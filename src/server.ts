@@ -144,22 +144,21 @@ export class FirewallaMCPServer {
               required: ['alarm_id'],
             },
           },
-          // Disabled: delete_alarm tool commented out because the Firewalla MSP API
-          // returns false success responses but doesn't actually delete alarms
-          // {
-          //   name: 'delete_alarm',
-          //   description: 'Delete/dismiss a specific Firewalla alarm',
-          //   inputSchema: {
-          //     type: 'object',
-          //     properties: {
-          //       alarm_id: {
-          //         type: 'string',
-          //         description: 'Alarm ID (required for API call)',
-          //       },
-          //     },
-          //     required: ['alarm_id'],
-          //   },
-          // },
+          {
+            name: 'delete_alarm',
+            description:
+              'Delete/dismiss a specific Firewalla alarm with post-delete verification. Returns verified status indicating whether the alarm was confirmed deleted.',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                alarm_id: {
+                  type: 'string',
+                  description: 'Alarm ID (required for API call)',
+                },
+              },
+              required: ['alarm_id'],
+            },
+          },
           {
             name: 'get_flow_data',
             description: 'Query network traffic flows from Firewalla firewall',
@@ -221,6 +220,30 @@ export class FirewallaMCPServer {
                 },
               },
               required: ['limit'],
+            },
+          },
+          {
+            name: 'update_device_name',
+            description:
+              'Rename a device on the Firewalla network',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                gid: {
+                  type: 'string',
+                  description: 'Box group ID (required)',
+                },
+                device_id: {
+                  type: 'string',
+                  description: 'Device ID to rename (required)',
+                },
+                name: {
+                  type: 'string',
+                  description: 'New device name (required, max 32 characters)',
+                  maxLength: 32,
+                },
+              },
+              required: ['gid', 'device_id', 'name'],
             },
           },
           {
@@ -650,6 +673,23 @@ export class FirewallaMCPServer {
                   description:
                     'Include blocked traffic analysis (default: false)',
                   default: false,
+                },
+              },
+              required: [],
+            },
+          },
+          {
+            name: 'get_flow_trends',
+            description:
+              'Get historical flow trend data (blocked flows per day)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                period: {
+                  type: 'string',
+                  enum: ['1h', '24h', '7d', '30d'],
+                  description: 'Time period for trends (default: 24h)',
+                  default: '24h',
                 },
               },
               required: [],

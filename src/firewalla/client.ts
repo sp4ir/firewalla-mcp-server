@@ -847,6 +847,53 @@ export class FirewallaClient {
     }
   }
 
+  /**
+   * Rename a device on the Firewalla network
+   *
+   * @param gid - Box group ID
+   * @param deviceId - Device ID to rename
+   * @param name - New device name (max 32 characters)
+   * @returns API response from the PATCH call
+   */
+  async updateDeviceName(
+    gid: string,
+    deviceId: string,
+    name: string
+  ): Promise<any> {
+    try {
+      const validatedGid = this.sanitizeInput(gid);
+      const validatedDeviceId = this.sanitizeInput(deviceId);
+
+      if (!validatedGid || validatedGid.length === 0) {
+        throw new Error('Invalid or empty gid provided');
+      }
+      if (!validatedDeviceId || validatedDeviceId.length === 0) {
+        throw new Error('Invalid or empty device_id provided');
+      }
+      if (!name || name.trim().length === 0) {
+        throw new Error('Device name must not be empty');
+      }
+      if (name.length > 32) {
+        throw new Error('Device name must be 32 characters or fewer');
+      }
+
+      return await this.request<any>(
+        'PATCH',
+        `/v2/boxes/${validatedGid}/devices/${validatedDeviceId}`,
+        {},
+        { name: name.trim() }
+      );
+    } catch (error) {
+      logger.error(
+        'Error in updateDeviceName:',
+        error instanceof Error ? error : new Error(String(error))
+      );
+      throw new Error(
+        `Failed to rename device: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
   @optimizeResponse('devices')
   async getOfflineDevices(
     sortByLastSeen: boolean = true

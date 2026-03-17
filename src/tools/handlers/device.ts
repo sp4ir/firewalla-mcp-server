@@ -10,6 +10,7 @@ import {
   createErrorResponse,
   ErrorType,
 } from '../../validation/error-handler.js';
+import { getCurrentTimestamp } from '../../utils/timestamp.js';
 import { unixToISOStringOrNow } from '../../utils/timestamp.js';
 import {
   sanitizeFieldValue,
@@ -231,6 +232,113 @@ export class GetDeviceStatusHandler extends BaseToolHandler {
       return createErrorResponse(
         this.name,
         `Failed to get device status: ${errorMessage}`,
+        ErrorType.API_ERROR,
+        { originalError: errorMessage }
+      );
+    }
+  }
+}
+
+export class UpdateDeviceNameHandler extends BaseToolHandler {
+  name = 'update_device_name';
+  description =
+    'Rename a device on the Firewalla network. Requires box GID, device ID, and new name (max 32 characters).';
+  category = 'device' as const;
+
+  constructor() {
+    super({
+      enableGeoEnrichment: false,
+      enableFieldNormalization: false,
+      additionalMeta: {
+        data_source: 'device_update',
+        entity_type: 'device_operation',
+        supports_geographic_enrichment: false,
+        supports_field_normalization: false,
+        standardization_version: '2.0.0',
+      },
+    });
+  }
+
+  async execute(
+    args: ToolArgs,
+    firewalla: FirewallaClient
+  ): Promise<ToolResponse> {
+    try {
+      const gidValidation = ParameterValidator.validateRequiredString(
+        args?.gid,
+        'gid'
+      );
+      const deviceIdValidation = ParameterValidator.validateRequiredString(
+        args?.device_id,
+        'device_id'
+      );
+      const nameValidation = ParameterValidator.validateRequiredString(
+        args?.name,
+        'name'
+      );
+
+      const validationResult = ParameterValidator.combineValidationResults([
+        gidValidation,
+        deviceIdValidation,
+        nameValidation,
+      ]);
+
+      if (!validationResult.isValid) {
+        return this.createErrorResponse(
+          'Parameter validation failed',
+          ErrorType.VALIDATION_ERROR,
+          undefined,
+          validationResult.errors
+        );
+      }
+
+      const gid = gidValidation.sanitizedValue as string;
+      const deviceId = deviceIdValidation.sanitizedValue as string;
+      const name = (nameValidation.sanitizedValue as string).trim();
+
+      if (name.length > 32) {
+        return this.createErrorResponse(
+          'Device name must be 32 characters or fewer',
+          ErrorType.VALIDATION_ERROR,
+          { provided_length: name.length, max_length: 32 }
+        );
+      }
+
+      if (name.length === 0) {
+        return this.createErrorResponse(
+          'Device name must not be empty',
+          ErrorType.VALIDATION_ERROR
+        );
+      }
+
+      const response = await withToolTimeout(
+        async () => firewalla.updateDeviceName(gid, deviceId, name),
+        this.name
+      );
+
+      return this.createSuccessResponse({
+        success: true,
+        device_id: deviceId,
+        gid,
+        new_name: name,
+        message: `Device renamed to '${name}'`,
+        updated_at: getCurrentTimestamp(),
+        api_response: response,
+      });
+    } catch (error: unknown) {
+      if (error instanceof TimeoutError) {
+        return createTimeoutErrorResponse(
+          this.name,
+          error.duration,
+          10000
+        );
+      }
+
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
+      return createErrorResponse(
+        this.name,
+        `Failed to rename device: ${errorMessage}`,
         ErrorType.API_ERROR,
         { originalError: errorMessage }
       );
